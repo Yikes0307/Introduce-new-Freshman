@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>แนะนำตัวกัน</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f0f4f8;
+      text-align: center;
+      padding: 50px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+    }
+    #message {
+      margin-top: 30px;
+      font-size: 20px;
+      color: #333;
+    }
+    .user-info {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ยินดีที่ได้รู้จักนะ</h1>
+  <p>กรุณากรอกชื่อ, Instagram, คณะที่เรียนและข้อความที่อยากบอก🫶</p>
+
+  <input type="text" id="nameInput" placeholder="ชื่อของคุณ (ภาษาไทย)">
+  <input type="text" id="igInput" placeholder="Instagram ของคุณ (@your_ig)">
+  <input type="text" id="facultyInput" placeholder="คณะที่เรียน">
+  <input type="text" id="messageInput" placeholder="ข้อความที่อยากบอก">
+  <button id="checkButton">ยืนยัน</button>
+  <button id="clearButton">ล้างข้อมูล</button>
+
+  <div id="message"></div>
+  <div id="allUsers"></div>
+
+  <script>
+    // ชื่อจริงถูกแอบเข้ารหัสไว้
+    const encodedName = [3609, 3634, 3609, 3634];
+
+    function decode(charCodes) {
+      return String.fromCharCode(...charCodes);
+    }
+
+    // โหลดข้อมูลจาก localStorage
+    function loadUsers() {
+      const allUsers = JSON.parse(localStorage.getItem('users')) || [];
+      const allUsersContainer = document.getElementById('allUsers');
+      allUsersContainer.innerHTML = '';
+
+      allUsers.forEach(user => {
+        const userElement = document.createElement('div');
+        userElement.classList.add('user-info');
+        userElement.innerHTML = `
+          <p>ชื่อ: ${user.name}</p>
+          <p>Instagram: <a href="https://instagram.com/${user.ig}" target="_blank">@${user.ig}</a></p>
+          <p>คณะที่เรียน: ${user.faculty}</p>
+          <p>ข้อความที่อยากบอก: ${user.message}</p>
+        `;
+        allUsersContainer.appendChild(userElement);
+      });
+    }
+
+    // ฟังก์ชันตรวจสอบชื่อ, IG, คณะที่เรียน และข้อความที่อยากบอก
+    function checkName() {
+      const inputName = document.getElementById("nameInput").value.trim();
+      const inputIG = document.getElementById("igInput").value.trim();
+      const inputFaculty = document.getElementById("facultyInput").value.trim();
+      const inputMessage = document.getElementById("messageInput").value.trim();
+      const correctName = decode(encodedName);
+      const messageBox = document.getElementById("message");
+
+      if (!inputName || !inputIG || !inputFaculty || !inputMessage) {
+        messageBox.innerHTML = `<p>กรุณากรอกชื่อ, Instagram, คณะที่เรียนและข้อความที่อยากบอกของคุณก่อนนะ :)</p>`;
+        return;
+      }
+
+      const allUsers = JSON.parse(localStorage.getItem('users')) || [];
+      const newUser = { name: inputName, ig: inputIG, faculty: inputFaculty, message: inputMessage };
+
+      // ถ้าชื่อถูกต้อง
+      if (inputName === correctName) {
+        messageBox.innerHTML = `
+          <p>ยินดีที่ได้รู้จักนะ ${inputName} 😊</p>
+          <p>เค้าขอโทษจริงๆนะ แกน่าจะรู้เค้าเป็นใคร</p>
+          <p>ไม่ได้อยากให้แกให้อภัย แต่เค้ารู้สึกผิดมากจริงๆ</p>
+          <p>เข้าใจทุกอย่างแล้ว และอยากขอโทษจริงๆ</p>
+          <p>ขอโทษที่ไปทำตัวปสด.ใส่แก</p>
+          <p>ต่อจากนี้ถ้าเจอที่มอ ก็ทักกันได้นะ :)</p>
+          <hr>
+        `;
+      } else {
+        messageBox.innerHTML = `
+          <p>ยินดีที่ได้รู้จักนะ ${inputName} 😊</p>
+        `;
+      }
+
+      // เพิ่มข้อมูลใหม่ลงใน localStorage
+      allUsers.push(newUser);
+      localStorage.setItem('users', JSON.stringify(allUsers));
+
+      // โหลดข้อมูลใหม่ทั้งหมด
+      loadUsers();
+    }
+
+    // ฟังก์ชันล้างข้อมูลทั้งหมดใน localStorage
+    function clearData() {
+      const password = prompt("กรุณากรอกรหัสผ่านเพื่อเคลียร์ข้อมูล:");
+
+      // ตรวจสอบรหัสผ่าน
+      if (password === "sigmaboysussuslueykub555") {
+        localStorage.removeItem('users'); // ลบข้อมูลจาก localStorage
+        loadUsers(); // โหลดข้อมูลใหม่หลังจากลบแล้ว
+        document.getElementById("message").innerHTML = `<p>ข้อมูลทั้งหมดถูกล้างแล้ว! 🙂</p>`;
+      } else {
+        alert("รหัสผ่านไม่ถูกต้อง!");
+      }
+    }
+
+    document.getElementById("checkButton").addEventListener("click", checkName);
+    document.getElementById("clearButton").addEventListener("click", clearData);
+
+    // โหลดข้อมูลเมื่อโหลดหน้าเว็บ
+    window.onload = loadUsers;
+  </script>
+
+</body>
+</html>
