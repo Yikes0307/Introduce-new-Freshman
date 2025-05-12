@@ -1,147 +1,223 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>แนะนำตัวกัน</title>
   <style>
     body {
       font-family: sans-serif;
       background-color: #f0f4f8;
-      text-align: center;
-      padding: 50px;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    input, button {
+
+    .container {
+      max-width: 700px;
+      width: 100%;
+      padding: 20px;
+    }
+
+    h1, p {
+      text-align: center;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .form-grid-full {
+      grid-column: span 2;
+    }
+
+    input, select, button {
       padding: 10px;
       font-size: 16px;
-      margin: 10px;
+      width: 100%;
+      box-sizing: border-box;
     }
+
+    button {
+      cursor: pointer;
+    }
+
     #message {
-      margin-top: 30px;
-      font-size: 20px;
-      color: #333;
-    }
-    .user-info {
-      margin-top: 20px;
+      margin: 20px 0;
       font-size: 18px;
       color: #333;
+    }
+
+    .faculty-group {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .faculty-group h3 {
+      margin-top: 0;
+    }
+
+    .user-info {
       padding: 10px;
       border: 1px solid #ccc;
-      margin-bottom: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      text-align: left;
+      background: #fafafa;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>ยินดีที่ได้รู้จักนะ</h1>
+    <p>กรุณากรอกชื่อ, Instagram, เลือกวิทยาเขตและคณะที่เรียน รวมถึงข้อความที่อยากบอก🫶</p>
 
-  <h1>ยินดีที่ได้รู้จักนะ</h1>
-  <p>กรุณากรอกชื่อ, Instagram, คณะที่เรียนและข้อความที่อยากบอก🫶</p>
+    <div class="form-grid">
+      <input type="text" id="nameInput" placeholder="ชื่อของคุณ (ภาษาไทย)">
+      <input type="text" id="igInput" placeholder="Instagram (ไม่ต้องใส่@)">
+      <select id="campusSelect">
+        <option value="">-- เลือกวิทยาเขต --</option>
+      </select>
+      <select id="facultySelect">
+        <option value="">-- เลือกคณะ --</option>
+      </select>
+      <input class="form-grid-full" type="text" id="messageInput" placeholder="ข้อความที่อยากบอก">
+      <button id="checkButton">ยืนยัน</button>
+    </div>
 
-  <input type="text" id="nameInput" placeholder="ชื่อของคุณ (ภาษาไทย)">
-  <input type="text" id="igInput" placeholder="Instagram (ไม่ต้องใส่@)">
-  <input type="text" id="facultyInput" placeholder="คณะที่เรียน">
-  <input type="text" id="messageInput" placeholder="ข้อความที่อยากบอก">
-  <button id="checkButton">ยืนยัน</button>
+    <div id="message"></div>
+    <div id="allUsers"></div>
+  </div>
 
-  <div id="message"></div>
-  <div id="allUsers"></div>
-
-  <!-- Use Firebase as ES Module -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js';
-    import { getDatabase, ref, set, get, child } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
+    import { getDatabase, ref, set, get, child, update } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js';
 
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDZzrDMQiCR0sj3-zmsI1KAtLyc4A7waUw",
       authDomain: "introduce-a6132.firebaseapp.com",
       databaseURL: "https://introduce-a6132-default-rtdb.asia-southeast1.firebasedatabase.app/",
       projectId: "introduce-a6132",
-      storageBucket: "introduce-a6132.firebasestorage.app",
+      storageBucket: "introduce-a6132.appspot.com",
       messagingSenderId: "475532078463",
       appId: "1:475532078463:web:4e9d81323c608abed07e4a"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    const encodedName = [3609, 3634, 3609, 3634];
-    
-    function decode(charCodes) {
-      return String.fromCharCode(...charCodes);
+    const campusFaculties = {
+      "บางเขน": ["เกษตร", "บริหารธุรกิจ", "ประมง", "มนุษยศาสตร์", "วนศาสตร์", "วิทยาศาสตร์", "วิศวกรรมศาสตร์", "ศึกษาศาสตร์", "เศรษฐศาสตร์", "สถาปัตยกรรมศาสตร์", "สังคมศาสตร์", "สัตวแพทยศาสตร์", "อุตสาหกรรมเกษตร", "เทคนิคการสัตวแพทย์", "สิ่งแวดล้อม", "แพทยศาสตร์", "พยาบาลศาสตร์", "สหวิทยาการจัดการและเทคโนโลยี", "วิทยาลัยบูรณาการศาสตร์", "บัณฑิตวิทยาลัย", "โครงการจัดตั้งวิทยาลัยนานาชาติ"],
+      "กำแพงแสน": ["เกษตร", "วิศวกรรมศาสตร์", "วิทยาศาสตร์การกีฬา", "ศิลปศาสตร์และวิทยาศาสตร์", "ศึกษาศาสตร์และพัฒนศาสตร์", "สัตวแพทยศาสตร์", "อุตสาหกรรมบริการ"],
+      "สกลนคร": ["วิทยาศาสตร์และวิศวกรรมศาสตร์", "ศิลปศาสตร์และวิทยาการจัดการ", "ทรัพยากรธรรมชาติและอุตสาหกรรมเกษตร", "สาธารณสุขศาสตร์"],
+      "ศรีราชา": ["วิทยาการจัดการ", "วิศวกรรมศาสตร์ศรีราชา", "วิทยาศาสตร์ ศรีราชา", "เศรษฐศาสตร์ ศรีราชา", "พาณิชยนาวีนานาชาติ"],
+      "สถาบันสมทบ": ["วิทยาลัยการชลประทาน"]
+    };
+
+    const campusSelect = document.getElementById("campusSelect");
+    const facultySelect = document.getElementById("facultySelect");
+
+    for (let campus in campusFaculties) {
+      const option = document.createElement("option");
+      option.value = campus;
+      option.textContent = campus;
+      campusSelect.appendChild(option);
     }
 
-    // Function to load users
+    campusSelect.addEventListener("change", () => {
+      const selected = campusSelect.value;
+      facultySelect.innerHTML = '<option value="">-- เลือกคณะ --</option>';
+      if (selected && campusFaculties[selected]) {
+        campusFaculties[selected].forEach(faculty => {
+          const option = document.createElement("option");
+          option.value = faculty;
+          option.textContent = faculty;
+          facultySelect.appendChild(option);
+        });
+      }
+    });
+
     function loadUsers() {
-      const allUsersContainer = document.getElementById('allUsers');
-      allUsersContainer.innerHTML = ''; // Clear previous content
+      const container = document.getElementById("allUsers");
+      container.innerHTML = '';
 
       const usersRef = ref(database, 'users');
       get(usersRef).then(snapshot => {
         const users = snapshot.val() || {};
-        // Check if there are any users in the database
-        if (users) {
-          Object.keys(users).forEach(key => {
-            const user = users[key];
-            const userElement = document.createElement('div');
-            userElement.classList.add('user-info');
-            userElement.innerHTML = `
-              <p>ชื่อ: ${user.name}</p>
-              <p>Instagram: <a href="https://instagram.com/${user.ig}" target="_blank">@${user.ig}</a></p>
-              <p>คณะที่เรียน: ${user.faculty}</p>
-              <p>ข้อความที่อยากบอก: ${user.message}</p>
+        const grouped = {};
+
+        Object.values(users).forEach(user => {
+          const faculty = user.faculty || "ไม่ระบุ";
+          if (!grouped[faculty]) grouped[faculty] = [];
+          grouped[faculty].push(user);
+        });
+
+        Object.keys(grouped).forEach(faculty => {
+          const groupDiv = document.createElement('div');
+          groupDiv.className = 'faculty-group';
+          groupDiv.innerHTML = `<h3>คณะ: ${faculty}</h3>`;
+
+          grouped[faculty].forEach(user => {
+            const div = document.createElement('div');
+            div.className = 'user-info';
+            div.innerHTML = `
+              <p><strong>ชื่อ:</strong> ${user.name}</p>
+              <p><strong>IG:</strong> <a href="https://instagram.com/${user.ig}" target="_blank">@${user.ig}</a></p>
+              <p><strong>วิทยาเขต:</strong> ${user.campus || "-"}</p>
+              <p><strong>ข้อความ:</strong> ${user.message}</p>
             `;
-            allUsersContainer.appendChild(userElement);
+            groupDiv.appendChild(div);
           });
-        } else {
-          allUsersContainer.innerHTML = '<p>ยังไม่มีข้อมูลผู้ใช้</p>';
-        }
-      }).catch(error => {
-        console.error("Error loading users: ", error);
+
+          container.appendChild(groupDiv);
+        });
       });
     }
 
     function checkName() {
-      const inputName = document.getElementById("nameInput").value.trim();
-      const inputIG = document.getElementById("igInput").value.trim();
-      const inputFaculty = document.getElementById("facultyInput").value.trim();
-      const inputMessage = document.getElementById("messageInput").value.trim();
-      const correctName = decode(encodedName);
-      const messageBox = document.getElementById("message");
+      const name = document.getElementById("nameInput").value.trim();
+      const ig = document.getElementById("igInput").value.trim();
+      const campus = document.getElementById("campusSelect").value;
+      const faculty = document.getElementById("facultySelect").value;
+      const message = document.getElementById("messageInput").value.trim();
+      const msgBox = document.getElementById("message");
 
-      if (!inputName || !inputIG || !inputFaculty || !inputMessage) {
-        messageBox.innerHTML = `<p>กรุณากรอกข้อมูลให้ครบถ้วน!</p>`;
+      if (!name || !ig || !campus || !faculty || !message) {
+        msgBox.innerHTML = "<p>กรุณากรอกข้อมูลให้ครบถ้วน</p>";
         return;
       }
 
-      const newUser = { name: inputName, ig: inputIG, faculty: inputFaculty, message: inputMessage };
+      const userRef = ref(database, 'users');
+      get(userRef).then(snapshot => {
+        const users = snapshot.val() || {};
+        const existingKey = Object.keys(users).find(key => users[key].name === name);
+        const data = { name, ig, campus, faculty, message };
 
-      if (inputName === correctName) {
-        messageBox.innerHTML = `
-          <p>ยินดีที่ได้รู้จักนะ ${inputName} 😊</p>
-          <p>เค้าขอโทษจริงๆนะ แกน่าจะรู้เค้าเป็นใคร</p>
-          <p>ไม่ได้อยากให้แกให้อภัย แต่เค้ารู้สึกผิดมากจริงๆ</p>
-          <p>เข้าใจทุกอย่างแล้ว และอยากขอโทษจริงๆ</p>
-          <p>ขอโทษที่ไปทำตัวปสด.ใส่แก</p>
-          <p>ต่อจากนี้ถ้าเจอที่มอ ก็ทักกันได้นะ :)</p>
-          <hr>
-        `;
-      } else {
-        messageBox.innerHTML = `<p>ยินดีที่ได้รู้จักนะ ${inputName} 😊</p>`;
-      }
+        if (existingKey) {
+          update(ref(database, 'users/' + existingKey), data);
+          msgBox.innerHTML = `<p>อัปเดตข้อมูลให้แล้วนะ ${name}</p>`;
+        } else {
+          const newUserRef = ref(database, 'users/' + Date.now());
+          set(newUserRef, data);
+          msgBox.innerHTML = `<p>ยินดีที่ได้รู้จักนะ ${name} 😊</p>`;
+        }
 
-      // Save the user data to Firebase
-      const newUserRef = ref(database, 'users/' + Date.now());
-      set(newUserRef, newUser).then(() => {
-        loadUsers();  // Reload the user list after adding the new user
+        loadUsers();
       });
     }
 
-    // Event listeners
     document.getElementById("checkButton").addEventListener("click", checkName);
-
-    window.onload = loadUsers; // Load users when page loads
+    window.onload = loadUsers;
   </script>
 </body>
 </html>
+
 
