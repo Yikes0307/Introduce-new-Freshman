@@ -41,7 +41,6 @@
   <input type="text" id="facultyInput" placeholder="คณะที่เรียน">
   <input type="text" id="messageInput" placeholder="ข้อความที่อยากบอก">
   <button id="checkButton">ยืนยัน</button>
-  <button id="clearButton">ล้างข้อมูล</button>
 
   <div id="message"></div>
   <div id="allUsers"></div>
@@ -138,21 +137,8 @@
       });
     }
 
-    function clearData() {
-      const password = prompt("กรุณากรอกรหัสผ่านเพื่อเคลียร์ข้อมูล:");
-      if (password === "sigmaboysussuslueykub555") {
-        const usersRef = ref(database, 'users');
-        set(usersRef, null); // Remove all users from the database
-        loadUsers();  // Reload users after clearing
-        document.getElementById("message").innerHTML = `<p>ข้อมูลทั้งหมดถูกล้างแล้ว! 🙂</p>`;
-      } else {
-        alert("รหัสผ่านไม่ถูกต้อง!");
-      }
-    }
-
     // Event listeners
     document.getElementById("checkButton").addEventListener("click", checkName);
-    document.getElementById("clearButton").addEventListener("click", clearData);
 
     window.onload = loadUsers; // Load users when page loads
   </script>
