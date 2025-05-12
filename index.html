@@ -6,7 +6,7 @@
   <title>แนะนำตัวกัน</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Prompt', sans-serif;
       background-color: #f0f4f8;
       margin: 0;
       padding: 0;
@@ -45,12 +45,21 @@
 
     button {
       cursor: pointer;
+      background-color: #1b7c2f;
+      color: white;
+      border: none;
+      border-radius: 8px;
+    }
+
+    button:hover {
+      background-color: #146324;
     }
 
     #message {
       margin: 20px 0;
       font-size: 18px;
       color: #333;
+      text-align: center;
     }
 
     .faculty-group {
@@ -72,6 +81,43 @@
       margin: 10px 0;
       text-align: left;
       background: #fafafa;
+    }
+
+    /* Modal styles */
+    #apologyModal {
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      text-align: center;
+      font-size: 16px;
+      position: relative;
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      font-size: 20px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -95,6 +141,15 @@
 
     <div id="message"></div>
     <div id="allUsers"></div>
+  </div>
+
+  <!-- Modal apology -->
+  <div id="apologyModal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>🫶 ข้อความขอโทษ</h2>
+      <p>เค้าขอโทษจริงๆนะ แกน่าจะรู้ว่าเค้าคือใคร ขอโทษที่ทำตัวปสด.ใส่แก เค้ารู้สึกผิดจริงที่พูดอย่างนั้น ไม่ได้อยากให้แกให้อภัย แต่อยากให้รู้ว่าขอโทษจริงๆ</p>
+    </div>
   </div>
 
   <script type="module">
@@ -195,6 +250,10 @@
         return;
       }
 
+      if (ig.toLowerCase() === "y3inana") {
+        document.getElementById("apologyModal").style.display = "flex";
+      }
+
       const userRef = ref(database, 'users');
       get(userRef).then(snapshot => {
         const users = snapshot.val() || {};
@@ -216,6 +275,11 @@
 
     document.getElementById("checkButton").addEventListener("click", checkName);
     window.onload = loadUsers;
+
+    // ปิด modal
+    document.querySelector(".close-btn").addEventListener("click", () => {
+      document.getElementById("apologyModal").style.display = "none";
+    });
   </script>
 </body>
 </html>
