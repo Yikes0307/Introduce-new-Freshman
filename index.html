@@ -238,40 +238,37 @@
     }
 
     function checkName() {
-      const name = document.getElementById("nameInput").value.trim();
-      const ig = document.getElementById("igInput").value.trim();
-      const campus = document.getElementById("campusSelect").value;
-      const faculty = document.getElementById("facultySelect").value;
-      const message = document.getElementById("messageInput").value.trim();
-      const msgBox = document.getElementById("message");
+  const name = document.getElementById("nameInput").value.trim();
+  const ig = document.getElementById("igInput").value.trim();
+  const campus = document.getElementById("campusSelect").value;
+  const faculty = document.getElementById("facultySelect").value;
+  const message = document.getElementById("messageInput").value.trim();
+  const msgBox = document.getElementById("message");
 
-      if (!name || !ig || !campus || !faculty || !message) {
-        msgBox.innerHTML = "<p>กรุณากรอกข้อมูลให้ครบถ้วน</p>";
-        return;
-      }
+  if (!name || !ig || !campus || !faculty || !message) {
+    msgBox.innerHTML = "<p>กรุณากรอกข้อมูลให้ครบถ้วน</p>";
+    return;
+  }
 
-      if (ig.toLowerCase() === "y3inana") {
-        document.getElementById("apologyModal").style.display = "flex";
-      }
+  if (ig.toLowerCase() === "y3inana") {
+    document.getElementById("apologyModal").style.display = "flex";
+  }
 
-      const userRef = ref(database, 'users');
-      get(userRef).then(snapshot => {
-        const users = snapshot.val() || {};
-        const existingKey = Object.keys(users).find(key => users[key].name === name);
-        const data = { name, ig, campus, faculty, message };
+  const userRef = ref(database, 'users');
+  get(userRef).then(snapshot => {
+    const users = snapshot.val() || {};
+    const existingKey = Object.keys(users).find(key => users[key].name === name);
+    const data = { name, ig, campus, faculty, message };
 
-        if (existingKey) {
-          update(ref(database, 'users/' + existingKey), data);
-          msgBox.innerHTML = `<p>อัปเดตข้อมูลให้แล้วนะ ${name}</p>`;
-        } else {
-          const newUserRef = ref(database, 'users/' + Date.now());
-          set(newUserRef, data);
-          msgBox.innerHTML = `<p>ยินดีที่ได้รู้จักนะ ${name} 😊</p>`;
-        }
+    // เพิ่มข้อมูลใหม่แทนการอัปเดตข้อมูลเก่า
+    const newUserRef = ref(database, 'users/' + Date.now());  // สร้างคีย์ใหม่ที่ไม่ซ้ำ
+    set(newUserRef, data);
 
-        loadUsers();
-      });
-    }
+    msgBox.innerHTML = `<p>ยินดีที่ได้รู้จักนะ ${name} 😊</p>`;
+
+    loadUsers();
+  });
+}
 
     document.getElementById("checkButton").addEventListener("click", checkName);
     window.onload = loadUsers;
